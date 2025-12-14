@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Оценка задания: {{ submission.student.user.get_full_name|default:submission.student.user.username }}</h1>
+<p>Урок: {{ submission.lesson.title }}</p>
+<p>Ответ студента: {{ submission.content }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Сохранить оценку</button>
+</form>
+{% endblock %}
