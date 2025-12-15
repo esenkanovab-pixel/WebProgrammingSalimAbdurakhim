@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Список курсов</h1>
-{% if user.is_authenticated %}
+{% if user.is_authenticated and user.is_staff %}
 <a href="{% url 'course_create' %}" class="btn btn-primary mb-3">Создать курс</a>
 {% endif %}
 <div class="list-group">
-    {% for course in courses %}
+{% for course in courses %}
     <a href="{% url 'course_detail' course.id %}" class="list-group-item list-group-item-action">
         {{ course.title }} - Преподаватель: {{ course.teacher.get_full_name|default:course.teacher.username }}
     </a>
-    {% empty %}
-    <p>Курсов пока нет.</p>
-    {% endfor %}
+{% empty %}
+<p>Курсов пока нет.</p>
+{% endfor %}
 </div>
 {% endblock %}
