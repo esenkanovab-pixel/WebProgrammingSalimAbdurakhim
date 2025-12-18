@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import AuthenticationForm
 from .models import Course, Lesson, HomeworkSubmission, Student
 
 ROLE_CHOICES = (
@@ -14,6 +15,12 @@ class UserRegistrationForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'first_name', 'last_name', 'email', 'password']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Имя пользователя'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Имя'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Фамилия'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'you@example.com'}),
+        }
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -26,6 +33,15 @@ class UserRegistrationForm(forms.ModelForm):
             if role == 'student':
                 Student.objects.create(user=user)
         return user
+
+
+class LoginForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            existing = field.widget.attrs.get('class', '')
+            classes = (existing + ' form-control').strip()
+            field.widget.attrs.update({'class': classes})
 
 class CourseCreateForm(forms.ModelForm):
     class Meta:

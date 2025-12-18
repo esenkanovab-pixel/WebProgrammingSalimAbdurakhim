@@ -1,0 +1,14 @@
+/* Minimal site styles to improve default Bootstrap look */
+body {
+  padding-top: 0.25rem;
+  background-color: #f8f9fa;
+}
+.navbar-brand { font-weight: 600; }
+.container { max-width: 960px; }
+
+.card-body p { margin-bottom: 0.5rem; }
+
+/* small responsive tweak */
+@media (max-width: 576px) {
+  .navbar-brand .fs-5 { font-size: 1rem; }
+}

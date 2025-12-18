@@ -1,0 +1,2 @@
+django>=4.2,<5
+# Add other dependencies here as you need them (e.g., Pillow, django-crispy-forms)

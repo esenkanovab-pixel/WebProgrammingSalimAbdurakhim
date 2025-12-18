@@ -8,6 +8,12 @@
 {% if submission %}
 <p><strong>Ваше задание:</strong> {{ submission.content }}</p>
 <p><strong>Оценка:</strong> {% if submission.is_graded %}{{ submission.grade }}{% else %}Не оценено{% endif %}</p>
+{% if submission and submission.student.user == user %}
+    <form method="post" action="{% url 'submission_delete' submission.id %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-danger">Удалить отправку</button>
+    </form>
+{% endif %}
 {% endif %}
 
 <form method="post">
