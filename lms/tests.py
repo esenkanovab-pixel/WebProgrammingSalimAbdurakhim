@@ -151,3 +151,22 @@ class DeadlineApiTests(TestCase):
         self.assertContains(response, 'LessonDL')
         self.assertContains(response, 'desc')
 
+    def test_teacher_can_update_deadline_via_api(self):
+        dl = Deadline.objects.create(title='Up1', description='old', due_at='2030-03-03T10:00:00', lesson=self.lesson, created_by=self.teacher)
+        self.client.login(username='teach', password='t')
+        url = reverse('deadline_detail_api', args=[dl.id])
+        payload = {'title': 'Up1-mod', 'description': 'new', 'due_at': '2030-03-03T11:00:00', 'lesson': self.lesson.id}
+        response = self.client.put(url, json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        dl.refresh_from_db()
+        self.assertEqual(dl.title, 'Up1-mod')
+        self.assertEqual(dl.description, 'new')
+
+    def test_teacher_can_delete_deadline_via_api(self):
+        dl = Deadline.objects.create(title='Del1', description='', due_at='2030-04-04T10:00:00', lesson=self.lesson, created_by=self.teacher)
+        self.client.login(username='teach', password='t')
+        url = reverse('deadline_detail_api', args=[dl.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Deadline.objects.filter(id=dl.id).exists())
+
