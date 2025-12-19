@@ -112,7 +112,10 @@ class DeadlineApiTests(TestCase):
         self.course = Course.objects.create(title='C', description='d', teacher=self.teacher)
         self.lesson = Lesson.objects.create(course=self.course, title='L', content='c')
         self.student_user = User.objects.create_user(username='suser', password='p')
-        Student.objects.create(user=self.student_user)
+        student = Student.objects.create(user=self.student_user)
+        # enroll test student in the course created above
+        student.courses.add(self.course)
+        self.course.students.add(student)
 
     def test_teacher_can_create_deadline_via_api(self):
         self.client.login(username='teach', password='t')
@@ -130,7 +133,7 @@ class DeadlineApiTests(TestCase):
         payload = {'title': 'DLx', 'description':'d', 'due_at': '2030-01-02T12:00:00'}
         response = self.client.post(url, json.dumps(payload), content_type='application/json')
         # should not be allowed to POST
-        self.assertNotEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 403)
 
     def test_student_can_view_deadlines(self):
         # create a deadline
@@ -176,11 +179,31 @@ class DeadlineApiTests(TestCase):
         url = reverse('deadline_detail_api', args=[dl.id])
         response = self.client.delete(url)
         # should not be allowed
-        self.assertNotEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 403)
 
     def test_student_cannot_access_deadline_create_view(self):
         self.client.login(username='suser', password='p')
         url = reverse('deadline_create', args=[self.lesson.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 403)
+
+    def test_student_does_not_see_deadlines_for_other_courses(self):
+        # create a different course and lesson with a deadline
+        teacher2 = User.objects.create_user(username='t2', password='t')
+        course2 = Course.objects.create(title='C2', description='d', teacher=teacher2)
+        lesson2 = Lesson.objects.create(course=course2, title='L2', content='c')
+        dl2 = Deadline.objects.create(title='Other', description='x', due_at='2030-05-05T10:00:00', lesson=lesson2, created_by=teacher2)
+
+        # suser is enrolled only in self.course
+        self.client.login(username='suser', password='p')
+        url = reverse('deadlines_api')
+        response = self.client.get(url)
+        data = response.json()
+        self.assertFalse(any(item['id'] == dl2.id for item in data.get('deadlines', [])))
+
+        # access lesson2 page - should not show the deadline to this student
+        lesson_url = reverse('lesson_detail', args=[lesson2.id])
+        resp2 = self.client.get(lesson_url)
+        self.assertEqual(resp2.status_code, 200)
+        self.assertNotContains(resp2, 'Other')
 

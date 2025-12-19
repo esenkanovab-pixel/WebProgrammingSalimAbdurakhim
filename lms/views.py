@@ -42,10 +42,16 @@ def lesson_detail(request, lesson_id):
     else:
         form = None
 
-    # Safely fetch deadlines related to this lesson. If the deadlines table is missing
-    # or there is a DB error, fall back to an empty list so template rendering doesn't fail.
+    # Safely fetch deadlines related to this lesson **only for authorized viewers**.
+    # Students can see deadlines for lessons of their enrolled courses; teachers see all.
     try:
-        lesson_deadlines = list(lesson.deadlines.all())
+        lesson_deadlines = []
+        if is_teacher(request.user):
+            lesson_deadlines = list(lesson.deadlines.all())
+        else:
+            student = getattr(request.user, 'student_profile', None)
+            if student and lesson.course in student.courses.all():
+                lesson_deadlines = list(lesson.deadlines.all())
     except Exception:
         lesson_deadlines = []
 
@@ -238,7 +244,15 @@ def deadlines_api(request):
     """Return list of deadlines as JSON. POST allows teachers to create a deadline using JSON or form-encoded data."""
     if request.method == 'GET':
         try:
-            qs = get_all_deadlines()
+            # teachers see all, students see deadlines for their courses and global (lesson is null)
+            if is_teacher(request.user):
+                qs = get_all_deadlines()
+            else:
+                student = getattr(request.user, 'student_profile', None)
+                if not student:
+                    return JsonResponse({'deadlines': []})
+                qs = get_all_deadlines().filter(Q(lesson__course__in=student.courses.all()) | Q(lesson__isnull=True))
+
             data = []
             for d in qs:
                 data.append({
@@ -254,9 +268,9 @@ def deadlines_api(request):
         except Exception:
             return JsonResponse({'deadlines': []})
 
-    # POST: create
+    # POST: create (only teachers)
     if not is_teacher(request.user):
-        return HttpResponseNotAllowed(['GET'])
+        raise PermissionDenied
     # accept JSON or form data
     try:
         payload = json.loads(request.body.decode('utf-8')) if request.body else request.POST.dict()
@@ -277,7 +291,15 @@ def deadlines_api(request):
 @require_http_methods(['GET', 'PUT', 'DELETE'])
 def deadline_detail_api(request, deadline_id):
     d = get_deadline(deadline_id)
+    # GET: allow if teacher or student of the related course (or global deadline)
     if request.method == 'GET':
+        if not is_teacher(request.user):
+            student = getattr(request.user, 'student_profile', None)
+            if not student:
+                raise PermissionDenied
+            # if deadline tied to a lesson, ensure the student is enrolled in the course
+            if d.lesson and d.lesson.course not in student.courses.all():
+                raise PermissionDenied
         return JsonResponse({
             'id': d.id,
             'title': d.title,
@@ -290,7 +312,7 @@ def deadline_detail_api(request, deadline_id):
 
     # PUT and DELETE require teacher
     if not is_teacher(request.user):
-        return HttpResponseNotAllowed(['GET'])
+        raise PermissionDenied
 
     if request.method == 'DELETE':
         delete_deadline(d)
