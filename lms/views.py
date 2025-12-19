@@ -103,9 +103,15 @@ def student_dashboard(request):
             })
         courses_data.append({'course': course, 'lessons': lessons_data})
 
+    # collect upcoming deadlines for student's courses
+    from django.utils import timezone
+    now = timezone.now()
+    deadlines = get_all_deadlines().filter(lesson__course__in=courses, due_at__gte=now).select_related('lesson')[:50]
+
     return render(request, 'student_dashboard.html', {
         'student': student,
         'courses_data': courses_data,
+        'deadlines': deadlines,
     })
 
 

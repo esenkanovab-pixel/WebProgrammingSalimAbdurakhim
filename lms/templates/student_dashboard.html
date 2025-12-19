@@ -2,6 +2,32 @@
 {% block title %}Дашборд студента — MiniLMS{% endblock %}
 {% block content %}
 <h2>Мои курсы и задания</h2>
+
+<h5>Ближайшие дедлайны</h5>
+{% if deadlines and deadlines.count > 0 %}
+  <ul class="list-group mb-3">
+    {% for dl in deadlines %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong>{{ dl.title }}</strong>
+          <div class="small text-muted">До: {{ dl.due_at|date:'SHORT_DATETIME_FORMAT' }}</div>
+          {% if dl.lesson %}
+            <div class="small">Урок: <a href="{% url 'lesson_detail' dl.lesson.id %}">{{ dl.lesson.title }}</a></div>
+          {% endif %}
+        </div>
+        {% if user.is_staff %}
+          <div>
+            <a href="{% url 'deadline_edit' dl.id %}" class="btn btn-sm btn-secondary">Изменить</a>
+            <a href="{% url 'deadline_delete' dl.id %}" class="btn btn-sm btn-danger">Удалить</a>
+          </div>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted">Ближайших дедлайнов нет.</p>
+{% endif %}
+
 {% if courses_data %}
   {% for entry in courses_data %}
     <div class="card mb-3">
