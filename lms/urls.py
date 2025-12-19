@@ -18,4 +18,12 @@ urlpatterns = [
     path('submission/<int:submission_id>/delete/', views.submission_delete, name='submission_delete'),
     path('submission/<int:submission_id>/edit/', views.submission_edit, name='submission_edit'),
     path('submissions/', views.submissions_list, name='submissions_list'),
+    # Deadlines and calendar
+    path('lesson/<int:lesson_id>/deadline/create/', views.deadline_create, name='deadline_create'),
+    path('deadline/<int:deadline_id>/edit/', views.deadline_edit, name='deadline_edit'),
+    path('deadline/<int:deadline_id>/delete/', views.deadline_delete, name='deadline_delete'),
+    path('calendar/', views.calendar_view, name='calendar_view'),
+    # API
+    path('api/deadlines/', views.deadlines_api, name='deadlines_api'),
+    path('api/deadlines/<int:deadline_id>/', views.deadline_detail_api, name='deadline_detail_api'),
 ]

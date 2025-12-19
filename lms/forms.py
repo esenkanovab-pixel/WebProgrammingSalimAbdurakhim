@@ -76,3 +76,17 @@ class GradeForm(forms.ModelForm):
         widgets = {
             'grade': forms.NumberInput(attrs={'class':'form-control', 'min':0, 'max':100}),
         }
+
+from .models import Deadline
+
+class DeadlineForm(forms.ModelForm):
+    due_at = forms.DateTimeField(widget=forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}))
+
+    class Meta:
+        model = Deadline
+        fields = ['title', 'description', 'due_at', 'lesson']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows':3}),
+            'lesson': forms.Select(attrs={'class': 'form-control'}),
+        }

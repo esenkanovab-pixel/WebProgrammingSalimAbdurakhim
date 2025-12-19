@@ -99,5 +99,55 @@ class AuthAndStudentFlowTests(TestCase):
         response2 = self.client.get(url2)
         self.assertEqual(response2.status_code, 403)
 from django.test import TestCase
+from django.urls import reverse
+from django.contrib.auth.models import User
+from .models import Deadline, Student, Course, Lesson
+import json
 
-# Create your tests here.
+class DeadlineApiTests(TestCase):
+    def setUp(self):
+        self.teacher = User.objects.create_user(username='teach', password='t')
+        self.teacher.is_staff = True
+        self.teacher.save()
+        self.course = Course.objects.create(title='C', description='d', teacher=self.teacher)
+        self.lesson = Lesson.objects.create(course=self.course, title='L', content='c')
+        self.student_user = User.objects.create_user(username='suser', password='p')
+        Student.objects.create(user=self.student_user)
+
+    def test_teacher_can_create_deadline_via_api(self):
+        self.client.login(username='teach', password='t')
+        url = reverse('deadlines_api')
+        payload = {'title': 'DL1', 'description':'d', 'due_at': '2030-01-01T12:00:00', 'lesson': self.lesson.id}
+        response = self.client.post(url, json.dumps(payload), content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('id', data)
+        self.assertTrue(Deadline.objects.filter(id=data['id']).exists())
+
+    def test_student_cannot_create_deadline_via_api(self):
+        self.client.login(username='suser', password='p')
+        url = reverse('deadlines_api')
+        payload = {'title': 'DLx', 'description':'d', 'due_at': '2030-01-02T12:00:00'}
+        response = self.client.post(url, json.dumps(payload), content_type='application/json')
+        # should not be allowed to POST
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_student_can_view_deadlines(self):
+        # create a deadline
+        dl = Deadline.objects.create(title='Test', description='', due_at='2030-01-03T12:00:00', lesson=self.lesson, created_by=self.teacher)
+        self.client.login(username='suser', password='p')
+        url = reverse('deadlines_api')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(any(item['id']==dl.id for item in data.get('deadlines', [])))
+
+    def test_deadlines_shown_on_lesson_page(self):
+        dl = Deadline.objects.create(title='LessonDL', description='desc', due_at='2030-02-02T09:00:00', lesson=self.lesson, created_by=self.teacher)
+        self.client.login(username='suser', password='p')
+        url = reverse('lesson_detail', args=[self.lesson.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'LessonDL')
+        self.assertContains(response, 'desc')
+
