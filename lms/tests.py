@@ -170,3 +170,17 @@ class DeadlineApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Deadline.objects.filter(id=dl.id).exists())
 
+    def test_student_cannot_delete_deadline_via_api(self):
+        dl = Deadline.objects.create(title='Del2', description='', due_at='2030-04-04T11:00:00', lesson=self.lesson, created_by=self.teacher)
+        self.client.login(username='suser', password='p')
+        url = reverse('deadline_detail_api', args=[dl.id])
+        response = self.client.delete(url)
+        # should not be allowed
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_student_cannot_access_deadline_create_view(self):
+        self.client.login(username='suser', password='p')
+        url = reverse('deadline_create', args=[self.lesson.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
