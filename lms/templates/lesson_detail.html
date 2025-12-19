@@ -35,5 +35,28 @@
     <p>Заданий пока нет.</p>
     {% endfor %}
 </ul>
+
+<h3>Дедлайны урока:</h3>
+{% if lesson.deadlines.all %}
+<ul class="list-group mb-3">
+    {% for dl in lesson.deadlines.all %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+            <strong>{{ dl.title }}</strong>
+            <div class="small text-muted">До: {{ dl.due_at|date:'SHORT_DATETIME_FORMAT' }}</div>
+            <div class="small">{{ dl.description }}</div>
+        </div>
+        <div>
+            <a href="{% url 'deadline_edit' dl.id %}" class="btn btn-sm btn-secondary">Изменить</a>
+            <a href="{% url 'deadline_delete' dl.id %}" class="btn btn-sm btn-danger">Удалить</a>
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Дедлайнов пока нет.</p>
+{% endif %}
+
+<a href="{% url 'deadline_create' lesson.id %}" class="btn btn-sm btn-primary">Добавить дедлайн</a>
 {% endif %}
 {% endblock %}
