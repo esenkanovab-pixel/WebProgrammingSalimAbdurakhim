@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{% if deadline %}Редактировать дедлайн{% else %}Создать дедлайн{% endif %}</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    {% if deadline and deadline.lesson %}
+    <a class="btn btn-secondary" href="{% url 'lesson_detail' deadline.lesson.id %}">Отмена</a>
+    {% else %}
+    <a class="btn btn-secondary" href="{% url 'course_list' %}">Отмена</a>
+    {% endif %}
+</form>
+{% endblock %}
