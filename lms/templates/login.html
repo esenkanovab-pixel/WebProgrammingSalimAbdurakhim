@@ -1,35 +1,38 @@
 {% extends 'base.html' %}
 {% block title %}Вход — MiniLMS{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h3 class="card-title mb-3">Вход</h3>
-                <form method="post" novalidate>
-                    {% csrf_token %}
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-                    {% endif %}
-                    {% for field in form %}
-                        <div class="mb-3">
-                            {{ field.label_tag }}
-                            {{ field }}
-                            {% if field.errors %}
-                                <div class="invalid-feedback d-block">{{ field.errors|striptags }}</div>
-                            {% endif %}
-                            {% if field.help_text %}
-                                <div class="form-text">{{ field.help_text }}</div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                    <div class="d-flex align-items-center">
-                        <button type="submit" class="btn btn-primary me-2">Войти</button>
-                        <a class="btn btn-link" href="#">Забыли пароль?</a>
-                    </div>
-                </form>
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="card">
+      <div class="card-body">
+        <h3 class="card-title">Вход</h3>
+        <p class="lead">Введите свои учетные данные, чтобы продолжить</p>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          {% for field in form %}
+            <div class="mb-3">
+              {{ field.label_tag }}
+              {{ field }}
+              {% if field.errors %}
+                <div class="invalid-feedback d-block">{{ field.errors|striptags }}</div>
+              {% endif %}
+              {% if field.help_text %}
+                <div class="form-text">{{ field.help_text }}</div>
+              {% endif %}
             </div>
-        </div>
+          {% endfor %}
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary custom btn-lg">Войти</button>
+            <a class="btn btn-link alt" href="#">Забыли пароль?</a>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}

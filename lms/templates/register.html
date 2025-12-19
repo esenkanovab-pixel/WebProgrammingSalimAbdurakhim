@@ -1,35 +1,38 @@
 {% extends 'base.html' %}
 {% block title %}Регистрация — MiniLMS{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card">
-            <div class="card-body">
-                <h3 class="card-title mb-3">Регистрация</h3>
-                <form method="post" novalidate>
-                    {% csrf_token %}
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-                    {% endif %}
-                    {% for field in form %}
-                        <div class="mb-3">
-                            {{ field.label_tag }}
-                            {{ field }}
-                            {% if field.errors %}
-                                <div class="invalid-feedback d-block">{{ field.errors|striptags }}</div>
-                            {% endif %}
-                            {% if field.help_text %}
-                                <div class="form-text">{{ field.help_text }}</div>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                    <div class="d-flex justify-content-between align-items-center">
-                        <button type="submit" class="btn btn-success">Зарегистрироваться</button>
-                        <a href="{% url 'login' %}" class="btn btn-link">Уже есть аккаунт?</a>
-                    </div>
-                </form>
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="card">
+      <div class="card-body">
+        <h3 class="card-title">Регистрация</h3>
+        <p class="lead">Создайте аккаунт ученика или преподавателя</p>
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          {% for field in form %}
+            <div class="mb-3">
+              {{ field.label_tag }}
+              {{ field }}
+              {% if field.errors %}
+                <div class="invalid-feedback d-block">{{ field.errors|striptags }}</div>
+              {% endif %}
+              {% if field.help_text %}
+                <div class="form-text">{{ field.help_text }}</div>
+              {% endif %}
             </div>
-        </div>
+          {% endfor %}
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-success custom btn-lg">Зарегистрироваться</button>
+            <a href="{% url 'login' %}" class="btn btn-link alt">Уже есть аккаунт?</a>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
