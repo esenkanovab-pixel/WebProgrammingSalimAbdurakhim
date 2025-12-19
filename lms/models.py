@@ -35,6 +35,23 @@ class HomeworkSubmission(models.Model):
     def __str__(self):
         return f"Submission by {self.student} for {self.lesson}"
 
+class Deadline(models.Model):
+    """Represents a deadline that may be attached to a lesson (optional)."""
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    due_at = models.DateTimeField()
+    lesson = models.ForeignKey(Lesson, null=True, blank=True, on_delete=models.SET_NULL, related_name='deadlines')
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='created_deadlines')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['due_at']
+
+    def __str__(self):
+        target = f" for {self.lesson}" if self.lesson else ""
+        return f"{self.title}{target} - due {self.due_at.isoformat()}"
+
 class Certificate(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='certificates')
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='certificates')
