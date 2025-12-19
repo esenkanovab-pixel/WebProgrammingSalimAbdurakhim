@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Календарь дедлайнов</h1>
+<div id="calendar-root">
+    <div id="deadline-list"></div>
+</div>
+
+<script>
+async function fetchDeadlines(){
+    const res = await fetch('{% url "deadlines_api" %}');
+    if(!res.ok) return;
+    const data = await res.json();
+    const list = document.getElementById('deadline-list');
+    const items = data.deadlines.sort((a,b)=> new Date(a.due_at)-new Date(b.due_at));
+    if(items.length===0){
+        list.innerHTML = '<p>Нет дедлайнов.</p>';
+        return;
+    }
+    let html = '<ul class="list-group">';
+    for(const d of items){
+        html += `<li class="list-group-item">
+            <strong>${d.title}</strong> — <span class="text-muted">${new Date(d.due_at).toLocaleString()}</span>
+            ${d.lesson_title?'<div class="small">Урок: '+d.lesson_title+'</div>':''}
+            ${d.description?'<div class="small">'+d.description+'</div>':''}
+            </li>`;
+    }
+    html += '</ul>';
+    list.innerHTML = html;
+}
+
+// initial load
+fetchDeadlines();
+// simple polling to auto-update calendar every 30 seconds
+setInterval(fetchDeadlines, 30000);
+</script>
+{% endblock %}
