@@ -41,7 +41,20 @@ def lesson_detail(request, lesson_id):
             form = None
     else:
         form = None
-    return render(request, 'lesson_detail.html', {'lesson': lesson, 'form': form, 'submission': submission})
+
+    # Safely fetch deadlines related to this lesson. If the deadlines table is missing
+    # or there is a DB error, fall back to an empty list so template rendering doesn't fail.
+    try:
+        lesson_deadlines = list(lesson.deadlines.all())
+    except Exception:
+        lesson_deadlines = []
+
+    return render(request, 'lesson_detail.html', {
+        'lesson': lesson,
+        'form': form,
+        'submission': submission,
+        'lesson_deadlines': lesson_deadlines,
+    })
 
 @login_required
 def course_create(request):
@@ -104,10 +117,13 @@ def student_dashboard(request):
             })
         courses_data.append({'course': course, 'lessons': lessons_data})
 
-    # collect upcoming deadlines for student's courses
+    # collect upcoming deadlines for student's courses (safe)
     from django.utils import timezone
     now = timezone.now()
-    deadlines = get_all_deadlines().filter(lesson__course__in=courses, due_at__gte=now).select_related('lesson')[:50]
+    try:
+        deadlines = get_all_deadlines().filter(lesson__course__in=courses, due_at__gte=now).select_related('lesson')[:50]
+    except Exception:
+        deadlines = []
 
     return render(request, 'student_dashboard.html', {
         'student': student,
@@ -221,19 +237,22 @@ import json
 def deadlines_api(request):
     """Return list of deadlines as JSON. POST allows teachers to create a deadline using JSON or form-encoded data."""
     if request.method == 'GET':
-        qs = get_all_deadlines()
-        data = []
-        for d in qs:
-            data.append({
-                'id': d.id,
-                'title': d.title,
-                'description': d.description,
-                'due_at': d.due_at.isoformat(),
-                'lesson_id': d.lesson.id if d.lesson else None,
-                'lesson_title': d.lesson.title if d.lesson else None,
-                'created_by': d.created_by.username if d.created_by else None,
-            })
-        return JsonResponse({'deadlines': data})
+        try:
+            qs = get_all_deadlines()
+            data = []
+            for d in qs:
+                data.append({
+                    'id': d.id,
+                    'title': d.title,
+                    'description': d.description,
+                    'due_at': d.due_at.isoformat(),
+                    'lesson_id': d.lesson.id if d.lesson else None,
+                    'lesson_title': d.lesson.title if d.lesson else None,
+                    'created_by': d.created_by.username if d.created_by else None,
+                })
+            return JsonResponse({'deadlines': data})
+        except Exception:
+            return JsonResponse({'deadlines': []})
 
     # POST: create
     if not is_teacher(request.user):
@@ -245,10 +264,13 @@ def deadlines_api(request):
         return HttpResponseBadRequest('invalid json')
     form = DeadlineForm(payload)
     if form.is_valid():
-        dl = form.save(commit=False)
-        dl.created_by = request.user
-        dl.save()
-        return JsonResponse({'status': 'created', 'id': dl.id})
+        try:
+            dl = form.save(commit=False)
+            dl.created_by = request.user
+            dl.save()
+            return JsonResponse({'status': 'created', 'id': dl.id})
+        except Exception:
+            return JsonResponse({'errors': 'database error'}, status=500)
     return JsonResponse({'errors': form.errors}, status=400)
 
 @login_required

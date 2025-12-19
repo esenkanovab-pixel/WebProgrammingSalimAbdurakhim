@@ -38,16 +38,16 @@
 {% endif %}
 
 <h3>Дедлайны урока:</h3>
-{% if lesson.deadlines.all %}
+{% if lesson_deadlines %}
 <ul class="list-group mb-3">
-    {% for dl in lesson.deadlines.all %}
+    {% for dl in lesson_deadlines %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
         <div>
             <strong>{{ dl.title }}</strong>
             <div class="small text-muted">До: {{ dl.due_at|date:'SHORT_DATETIME_FORMAT' }}</div>
             <div class="small">{{ dl.description }}</div>
         </div>
-        {% if user == lesson.course.teacher %}
+        {% if user.is_staff %}
         <div>
             <a href="{% url 'deadline_edit' dl.id %}" class="btn btn-sm btn-secondary">Изменить</a>
             <a href="{% url 'deadline_delete' dl.id %}" class="btn btn-sm btn-danger">Удалить</a>
@@ -60,7 +60,7 @@
 <p>Дедлайнов пока нет.</p>
 {% endif %}
 
-{% if user == lesson.course.teacher %}
+{% if user.is_staff %}
 <a href="{% url 'deadline_create' lesson.id %}" class="btn btn-sm btn-primary">Добавить дедлайн</a>
 {% endif %}
 {% endblock %}
