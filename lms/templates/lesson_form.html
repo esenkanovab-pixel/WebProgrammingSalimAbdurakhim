@@ -1,9 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Добавить урок к "{{ course.title }}"</h1>
-<form method="post">
+<form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ form.as_p }}
+    <div class="mb-3">
+      <label class="form-label">Материалы (файлы)</label>
+      <input type="file" name="attachments" class="form-control form-control-sm" multiple>
+      <div class="file-previews mt-2"></div>
+    </div>
     <button type="submit" class="btn btn-primary">Создать урок</button>
 </form>
 {% endblock %}

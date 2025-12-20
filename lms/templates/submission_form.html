@@ -6,7 +6,7 @@
     <div class="card">
       <div class="card-body">
         <h4 class="card-title">Редактирование отправки для «{{ submission.lesson.title }}»</h4>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
           {% for field in form %}
             <div class="mb-3">
@@ -17,6 +17,30 @@
               {% endif %}
             </div>
           {% endfor %}
+
+          {% if submission.files.all %}
+            <div class="mb-3">
+              <strong>Текущие файлы:</strong>
+              <ul class="list-unstyled">
+                {% for f in submission.files.all %}
+                  <li>
+                    <a href="{{ f.file.url }}" target="_blank">{{ f.file.name }}</a>
+                    <form method="post" action="{% url 'submission_file_delete' f.id %}" class="d-inline ms-2">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                    </form>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label">Добавить файлы</label>
+            <input type="file" name="attachments" class="form-control form-control-sm" multiple>
+            <div class="file-previews mt-2"></div>
+          </div>
+
           <button type="submit" class="btn btn-primary">Сохранить</button>
           <a href="{% url 'lesson_detail' submission.lesson.id %}" class="btn btn-secondary ms-2">Отмена</a>
         </form>

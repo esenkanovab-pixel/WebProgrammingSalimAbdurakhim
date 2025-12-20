@@ -7,6 +7,16 @@
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
+    {% if submission.files.all %}
+      <div class="mb-3">
+        <strong>Файлы студента:</strong>
+        <ul class="list-unstyled">
+          {% for f in submission.files.all %}
+            <li><a href="{{ f.file.url }}" target="_blank">{{ f.file.name }}</a> <span class="small text-muted">({{ f.uploaded_at|date:'SHORT_DATETIME_FORMAT' }})</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
     <button type="submit" class="btn btn-success">Сохранить оценку</button>
 </form>
 {% endblock %}
