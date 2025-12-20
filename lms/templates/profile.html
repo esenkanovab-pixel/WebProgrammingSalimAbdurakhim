@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load gravatar %}
+{% block title %}Профиль — MiniLMS{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-body d-flex gap-3 align-items-center">
+        <img src="{{ request.user|gravatar_url:120 }}" alt="avatar" class="rounded-circle" style="width:96px;height:96px;object-fit:cover;">
+        <div>
+          <h3 class="mb-0">{{ request.user.get_full_name|default:request.user.username }}</h3>
+          <div class="small text-muted mb-2">
+            {% if request.user.is_staff %}Преподаватель{% elif request.user.student_profile %}Студент{% else %}Пользователь{% endif %}
+          </div>
+          <div class="small"><strong>Email:</strong> {{ request.user.email }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body">
+        <h5>Курсы</h5>
+        {% if request.user.student_profile %}
+          <ul>
+            {% for c in request.user.student_profile.courses.all %}
+              <li><a href="{% url 'course_detail' c.id %}">{{ c.title }}</a></li>
+            {% empty %}
+              <li>Нет записей.</li>
+            {% endfor %}
+          </ul>
+        {% elif request.user.is_staff %}
+          <ul>
+            {% for c in request.user.teaching_courses.all %}
+              <li><a href="{% url 'course_detail' c.id %}">{{ c.title }}</a></li>
+            {% empty %}
+              <li>Нет курсов.</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="small text-muted">Нет связанных курсов.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

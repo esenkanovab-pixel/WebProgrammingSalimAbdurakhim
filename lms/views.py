@@ -230,6 +230,16 @@ def register_user(request):
         form = UserRegistrationForm()
     return render(request, 'register.html', {'form': form})
 
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def profile_view(request):
+    """Show current user's profile with avatar and role."""
+    return render(request, 'profile.html')
+
+def about_view(request):
+    return render(request, 'about.html')
+
 # -- Deadline management and API -------------------------------------------------
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.views.decorators.http import require_http_methods

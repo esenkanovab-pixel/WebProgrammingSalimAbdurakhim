@@ -58,6 +58,14 @@ body {
 .dropdown-item { transition: background .12s ease; }
 .dropdown-item:hover { background: rgba(15,23,42,0.03); }
 
+/* avatar */
+.avatar { width: 34px; height: 34px; object-fit:cover; }
+
+/* theme toggle */
+.theme-toggle { background: transparent; border: 1px solid rgba(15,23,42,0.06); box-shadow: none; transition: transform .08s ease, background .12s ease; }
+.theme-toggle:hover { transform: translateY(-2px); background: rgba(15,23,42,0.03); }
+
+
 /* Footer */
 .site-footer {
   background: linear-gradient(180deg, rgba(247,250,252,0.6), rgba(255,255,255,0.6));
@@ -67,17 +75,23 @@ body {
   padding-top: .75rem;
   padding-bottom: .75rem;
 }
-.site-footer .container { display:flex; align-items:center; justify-content:center; gap:.5rem; }
+.site-footer .container { display:flex; gap:1.5rem; }
 .site-footer .small { opacity: 0.95; }
 
 .site-footer h5, .site-footer h6 { color: rgba(11,15,34,0.88); }
 .site-footer .footer-link { color: rgba(11,15,34,0.8); text-decoration: none; }
 .site-footer .footer-link:hover { text-decoration: underline; color: var(--primary-600); }
 
+/* social icons */
+.social-list { display:flex; gap:.75rem; align-items:center; }
+.social-link { display:inline-flex; width:36px; height:36px; align-items:center; justify-content:center; border-radius:8px; background:transparent; transition: transform .12s ease, box-shadow .12s ease; color:inherit; }
+.social-link svg { width:20px; height:20px; display:block; }
+.social-link:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 20px rgba(20,20,43,0.08); }
+
 @media (max-width: 767px) {
   .site-navbar .nav-link { padding:.45rem .65rem; }
   .brand-text { font-size: 1rem; }
-  .site-footer .container { flex-direction: column; align-items: flex-start; }
+  .site-footer .container { flex-direction: column; align-items: flex-start; gap: .75rem; }
   .site-footer .text-center { text-align: left !important; }
 }
 
@@ -148,4 +162,15 @@ body {
 
 /* small responsive tweak */
 @media (max-width: 576px) { .navbar-brand .fs-5 { font-size: 1rem; } }
+
+/* theme switcher */
+.logo-dark { display:none; }
+.theme-dark .logo-light { display:none !important; }
+.theme-dark .logo-dark { display:inline-block !important; }
+
+.theme-dark { --bg: #0b1220; --surface: #0f1724; --primary-500: #3b82f6; color: #e6eef9; }
+.theme-dark body { background-color: var(--bg); color: #e6eef9; }
+.theme-toggle { cursor: pointer; border-radius: 8px; padding: .35rem; display:inline-flex; align-items:center; justify-content:center; }
+.theme-toggle svg { width:18px; height:18px; }
+
 

@@ -26,4 +26,6 @@ urlpatterns = [
     # API
     path('api/deadlines/', views.deadlines_api, name='deadlines_api'),
     path('api/deadlines/<int:deadline_id>/', views.deadline_detail_api, name='deadline_detail_api'),
+    path('about/', views.about_view, name='about'),
+    path('profile/', views.profile_view, name='profile'),
 ]
