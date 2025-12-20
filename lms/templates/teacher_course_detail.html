@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}{{ course.title }} — MiniLMS{% endblock %}
+{% block content %}
+<h1>{{ course.title }}</h1>
+<p class="text-muted">{{ course.description }}</p>
+<h4>Студенты ({{ students.count }})</h4>
+<ul>
+  {% for s in students %}
+    <li>{{ s.user.get_full_name|default:s.user.username }}</li>
+  {% empty %}
+    <li>Нет студентов.</li>
+  {% endfor %}
+</ul>
+
+<h4>Уроки</h4>
+<ul>
+  {% for lesson in lessons %}
+    <li>
+      <a href="#">{{ lesson.title }}</a>
+      <a class="btn btn-sm btn-outline-primary ms-2" href="{% url 'teacher_lesson_submissions' lesson.id %}">Посмотреть отправки</a>
+    </li>
+  {% empty %}
+    <li>Нет уроков.</li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

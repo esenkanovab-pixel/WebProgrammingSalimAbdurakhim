@@ -28,4 +28,9 @@ urlpatterns = [
     path('api/deadlines/<int:deadline_id>/', views.deadline_detail_api, name='deadline_detail_api'),
     path('about/', views.about_view, name='about'),
     path('profile/', views.profile_view, name='profile'),
+    # Teacher and student specific
+    path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
+    path('teacher/course/<int:course_id>/', views.teacher_course_detail, name='teacher_course_detail'),
+    path('teacher/lesson/<int:lesson_id>/submissions/', views.teacher_lesson_submissions, name='teacher_lesson_submissions'),
+    path('student/grades/', views.student_grades, name='student_grades'),
 ]

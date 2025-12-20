@@ -46,6 +46,12 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
                             <li><a class="dropdown-item" href="{% url 'profile' %}">Профиль</a></li>
                             <li><a class="dropdown-item" href="{% url 'student_dashboard' %}">Мои курсы</a></li>
+                            {% if user.student_profile %}
+                              <li><a class="dropdown-item" href="{% url 'student_grades' %}">Мои оценки</a></li>
+                            {% endif %}
+                            {% if user.is_staff %}
+                              <li><a class="dropdown-item" href="{% url 'teacher_dashboard' %}">Панель преподавателя</a></li>
+                            {% endif %}
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form method="post" action="{% url 'logout' %}" class="px-3 py-1">

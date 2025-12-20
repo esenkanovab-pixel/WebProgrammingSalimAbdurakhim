@@ -240,6 +240,72 @@ def profile_view(request):
 def about_view(request):
     return render(request, 'about.html')
 
+# ---------------- Teacher / Student specific views -----------------
+@login_required
+def teacher_dashboard(request):
+    """List teacher's courses with student counts and student lists."""
+    if not is_teacher(request.user):
+        raise PermissionDenied
+    courses = Course.objects.filter(teacher=request.user).prefetch_related('students')
+    data = []
+    for c in courses:
+        students_qs = c.students.all().select_related('user')
+        data.append({
+            'course': c,
+            'students_count': students_qs.count(),
+            'students': students_qs,
+        })
+    return render(request, 'teacher_dashboard.html', {'courses_data': data})
+
+@login_required
+def teacher_course_detail(request, course_id):
+    """Show course overview for teacher: students and lessons."""
+    if not is_teacher(request.user):
+        raise PermissionDenied
+    course = get_object_or_404(Course, id=course_id)
+    if course.teacher != request.user:
+        raise PermissionDenied
+    students = course.students.all().select_related('user')
+    lessons = course.lessons.all()
+    return render(request, 'teacher_course_detail.html', {'course': course, 'students': students, 'lessons': lessons})
+
+@login_required
+def teacher_lesson_submissions(request, lesson_id):
+    """Allow teacher to view all submissions for a lesson and grade them."""
+    if not is_teacher(request.user):
+        raise PermissionDenied
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    if lesson.course.teacher != request.user:
+        raise PermissionDenied
+    submissions = lesson.submissions.select_related('student__user')
+
+    # handle inline grading POST (submission_id and grade)
+    if request.method == 'POST':
+        sub_id = request.POST.get('submission_id')
+        try:
+            sub = submissions.get(id=sub_id)
+        except Exception:
+            raise PermissionDenied
+        form = GradeForm(request.POST, instance=sub)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.is_graded = True
+            obj.save()
+            return redirect('teacher_lesson_submissions', lesson_id=lesson.id)
+    # prepare forms for each submission
+    forms = {s.id: GradeForm(instance=s) for s in submissions}
+    return render(request, 'teacher_lesson_submissions.html', {'lesson': lesson, 'submissions': submissions, 'forms': forms})
+
+@login_required
+def student_grades(request):
+    """Student view: list submissions and grades for current student."""
+    student = getattr(request.user, 'student_profile', None)
+    if not student:
+        # Not a student - redirect or deny
+        return redirect('course_list')
+    submissions = HomeworkSubmission.objects.filter(student=student).select_related('lesson', 'lesson__course')
+    return render(request, 'student_grades.html', {'submissions': submissions})
+
 # -- Deadline management and API -------------------------------------------------
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.views.decorators.http import require_http_methods

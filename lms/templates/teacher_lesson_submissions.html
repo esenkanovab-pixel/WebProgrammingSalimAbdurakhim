@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Отправки — {{ lesson.title }} — MiniLMS{% endblock %}
+{% block content %}
+<h1>Отправления: {{ lesson.title }}</h1>
+{% if submissions %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Студент</th>
+        <th>Содержимое</th>
+        <th>Оценка</th>
+        <th>Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in submissions %}
+        <tr>
+          <td>{{ s.student.user.get_full_name|default:s.student.user.username }}</td>
+          <td>{{ s.content|truncatechars:120 }}</td>
+          <td>
+            {% if s.is_graded %}
+              <strong>{{ s.grade }}</strong>
+            {% else %}
+              <span class="text-muted">Не оценено</span>
+            {% endif %}
+          </td>
+          <td>
+            <form method="post" action="" class="d-flex gap-2 align-items-center">
+              {% csrf_token %}
+              <input type="hidden" name="submission_id" value="{{ s.id }}">
+              <input type="number" name="grade" min="0" max="100" class="form-control form-control-sm" value="{{ s.grade|default_if_none:'' }}" style="width:100px;">
+              <button class="btn btn-sm btn-primary" type="submit">Сохранить</button>
+              <a class="btn btn-sm btn-outline-secondary ms-1" href="{% url 'grade_submission' s.id %}">Открыть</a>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>Пока нет отправлений.</p>
+{% endif %}
+{% endblock %}

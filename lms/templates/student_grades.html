@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Мои оценки — MiniLMS{% endblock %}
+{% block content %}
+<h1>Мои оценки</h1>
+{% if submissions %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Курс</th>
+        <th>Урок</th>
+        <th>Оценка</th>
+        <th>Статус</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in submissions %}
+        <tr>
+          <td>{{ s.lesson.course.title }}</td>
+          <td><a href="{% url 'lesson_detail' s.lesson.id %}">{{ s.lesson.title }}</a></td>
+          <td>{% if s.is_graded %}<strong>{{ s.grade }}</strong>{% else %}-{% endif %}</td>
+          <td>{% if s.is_graded %}<span class="text-success small">Оценено</span>{% else %}<span class="text-muted small">Не оценено</span>{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>Нет оценок.</p>
+{% endif %}
+{% endblock %}
