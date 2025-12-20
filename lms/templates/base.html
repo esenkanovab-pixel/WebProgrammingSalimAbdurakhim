@@ -44,7 +44,7 @@
     </div>
 </nav>
 
-<div class="container">
+<main class="site-content container">
     {% if messages %}
         <div class="mt-2">
             {% for message in messages %}
@@ -57,7 +57,7 @@
     {% endif %}
 
     {% block content %}{% endblock %}
-</div>
+</main>
 
 <footer class="site-footer py-4 mt-5">
     <div class="container text-center small text-muted">
