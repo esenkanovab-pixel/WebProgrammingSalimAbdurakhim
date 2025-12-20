@@ -2,7 +2,7 @@
 {% block content %}
 <h1>Список курсов</h1>
 {% if user.is_authenticated and user.is_staff %}
-<a href="{% url 'course_create' %}" class="btn btn-primary mb-3">Создать курс</a>
+<a href="{% url 'course_create' %}" class="btn btn-primary custom mb-3">Создать курс</a>
 {% endif %}
 <div class="list-group">
 {% for course in courses %}

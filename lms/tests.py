@@ -112,7 +112,9 @@ class DeadlineApiTests(TestCase):
         self.course = Course.objects.create(title='C', description='d', teacher=self.teacher)
         self.lesson = Lesson.objects.create(course=self.course, title='L', content='c')
         self.student_user = User.objects.create_user(username='suser', password='p')
-        Student.objects.create(user=self.student_user)
+        student = Student.objects.create(user=self.student_user)
+        # enroll test student in the course for deadline visibility
+        student.courses.add(self.course)
 
     def test_teacher_can_create_deadline_via_api(self):
         self.client.login(username='teach', password='t')

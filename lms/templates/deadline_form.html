@@ -4,7 +4,7 @@
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <button type="submit" class="btn btn-primary custom">Сохранить</button>
     {% if deadline and deadline.lesson %}
     <a class="btn btn-secondary" href="{% url 'lesson_detail' deadline.lesson.id %}">Отмена</a>
     {% else %}
