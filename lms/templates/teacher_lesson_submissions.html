@@ -2,6 +2,23 @@
 {% block title %}Отправки — {{ lesson.title }} — MiniLMS{% endblock %}
 {% block content %}
 <h1>Отправления: {{ lesson.title }}</h1>
+
+<!-- Filter form -->
+<form method="get" class="row g-2 align-items-center mb-3">
+  <div class="col-auto">
+    <label class="form-label small mb-0">Статус</label>
+    <select name="graded" class="form-select form-select-sm">
+      <option value="" {% if not graded_filter %}selected{% endif %}>Все</option>
+      <option value="yes" {% if graded_filter == 'yes' %}selected{% endif %}>Оценено</option>
+      <option value="no" {% if graded_filter == 'no' %}selected{% endif %}>Не оценено</option>
+    </select>
+  </div>
+  <div class="col-auto">
+    <label class="form-label small mb-0">Показать</label>
+    <button class="btn btn-sm btn-outline-primary" type="submit">Применить</button>
+  </div>
+</form>
+
 {% if submissions %}
   <table class="table table-striped">
     <thead>
@@ -25,7 +42,7 @@
             {% endif %}
           </td>
           <td>
-            <form method="post" action="" class="d-flex gap-2 align-items-center">
+            <form method="post" action="?page={{ page_obj.number }}{% if graded_filter %}&amp;graded={{ graded_filter }}{% endif %}" class="d-flex gap-2 align-items-center">
               {% csrf_token %}
               <input type="hidden" name="submission_id" value="{{ s.id }}">
               <input type="number" name="grade" min="0" max="100" class="form-control form-control-sm" value="{{ s.grade|default_if_none:'' }}" style="width:100px;">
@@ -37,6 +54,28 @@
       {% endfor %}
     </tbody>
   </table>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if graded_filter %}&amp;graded={{ graded_filter }}{% endif %}">Предыдущая</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Предыдущая</span></li>
+        {% endif %}
+
+        <li class="page-item active"><span class="page-link">Стр. {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if graded_filter %}&amp;graded={{ graded_filter }}{% endif %}">Следующая</a></li>
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">Следующая</span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+
 {% else %}
   <p>Пока нет отправлений.</p>
 {% endif %}

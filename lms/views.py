@@ -271,20 +271,31 @@ def teacher_course_detail(request, course_id):
 
 @login_required
 def teacher_lesson_submissions(request, lesson_id):
-    """Allow teacher to view all submissions for a lesson and grade them."""
+    """Allow teacher to view all submissions for a lesson and grade them. Supports filtering (graded yes/no) and pagination."""
     if not is_teacher(request.user):
         raise PermissionDenied
     lesson = get_object_or_404(Lesson, id=lesson_id)
     if lesson.course.teacher != request.user:
         raise PermissionDenied
-    submissions = lesson.submissions.select_related('student__user')
 
-    # handle inline grading POST (submission_id and grade)
+    # Base queryset
+    qs = lesson.submissions.select_related('student__user')
+
+    # Filtering by graded status (query param: graded=yes|no)
+    graded = request.GET.get('graded')
+    if graded == 'yes':
+        qs = qs.filter(is_graded=True)
+    elif graded == 'no':
+        qs = qs.filter(is_graded=False)
+
+    # Handle grading POST (submission_id and grade) - more robust: fetch by id and verify belongs to lesson
     if request.method == 'POST':
         sub_id = request.POST.get('submission_id')
         try:
-            sub = submissions.get(id=sub_id)
+            sub = get_object_or_404(HomeworkSubmission, id=sub_id)
         except Exception:
+            raise PermissionDenied
+        if sub.lesson_id != lesson.id:
             raise PermissionDenied
         form = GradeForm(request.POST, instance=sub)
         if form.is_valid():
@@ -292,9 +303,25 @@ def teacher_lesson_submissions(request, lesson_id):
             obj.is_graded = True
             obj.save()
             return redirect('teacher_lesson_submissions', lesson_id=lesson.id)
-    # prepare forms for each submission
-    forms = {s.id: GradeForm(instance=s) for s in submissions}
-    return render(request, 'teacher_lesson_submissions.html', {'lesson': lesson, 'submissions': submissions, 'forms': forms})
+
+    # Pagination
+    from django.core.paginator import Paginator
+    page_size = 10
+    paginator = Paginator(qs.order_by('-id'), page_size)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # prepare forms for current page submissions
+    forms = {s.id: GradeForm(instance=s) for s in page_obj.object_list}
+
+    context = {
+        'lesson': lesson,
+        'page_obj': page_obj,
+        'submissions': page_obj.object_list,
+        'forms': forms,
+        'graded_filter': graded,
+    }
+    return render(request, 'teacher_lesson_submissions.html', context)
 
 @login_required
 def student_grades(request):

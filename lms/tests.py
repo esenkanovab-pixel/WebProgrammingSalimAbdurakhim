@@ -206,3 +206,54 @@ class DeadlineApiTests(TestCase):
         self.assertEqual(resp2.status_code, 200)
         self.assertNotContains(resp2, 'Other')
 
+class TeacherSubmissionsTests(TestCase):
+    def setUp(self):
+        self.teacher = User.objects.create_user(username='teach2', password='t')
+        self.teacher.is_staff = True
+        self.teacher.save()
+        self.course = Course.objects.create(title='TeachCourse', description='d', teacher=self.teacher)
+        self.lesson = Lesson.objects.create(course=self.course, title='TeachLesson', content='c')
+
+    def test_teacher_can_filter_submissions_by_status(self):
+        # create students and submissions with mixed graded status
+        s1u = User.objects.create_user(username='studA', password='p')
+        s1 = Student.objects.create(user=s1u)
+        s1.courses.add(self.course)
+        self.course.students.add(s1)
+        sub1 = HomeworkSubmission.objects.create(lesson=self.lesson, student=s1, content='a', grade=85, is_graded=True)
+
+        s2u = User.objects.create_user(username='studB', password='p')
+        s2 = Student.objects.create(user=s2u)
+        s2.courses.add(self.course)
+        self.course.students.add(s2)
+        sub2 = HomeworkSubmission.objects.create(lesson=self.lesson, student=s2, content='b', is_graded=False)
+
+        self.client.login(username='teach2', password='t')
+        url = reverse('teacher_lesson_submissions', args=[self.lesson.id])
+        resp = self.client.get(url + '?graded=no')
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'studB')
+        self.assertNotContains(resp, 'studA')
+
+    def test_pagination_of_submissions(self):
+        # create 12 students and submissions
+        for i in range(12):
+            u = User.objects.create_user(username=f'st{i}', password='p')
+            student = Student.objects.create(user=u)
+            student.courses.add(self.course)
+            self.course.students.add(student)
+            HomeworkSubmission.objects.create(lesson=self.lesson, student=student, content=f'content {i}')
+
+        self.client.login(username='teach2', password='t')
+        url = reverse('teacher_lesson_submissions', args=[self.lesson.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        # page_obj available in context
+        page_obj = resp.context['page_obj']
+        self.assertEqual(page_obj.paginator.count, 12)
+        self.assertEqual(len(page_obj.object_list), 10)
+        # check second page has remaining 2
+        resp2 = self.client.get(url + '?page=2')
+        page_obj2 = resp2.context['page_obj']
+        self.assertEqual(len(page_obj2.object_list), 2)
+
