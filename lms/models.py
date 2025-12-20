@@ -35,6 +35,23 @@ class HomeworkSubmission(models.Model):
     def __str__(self):
         return f"Submission by {self.student} for {self.lesson}"
 
+class SubmissionFile(models.Model):
+    submission = models.ForeignKey(HomeworkSubmission, on_delete=models.CASCADE, related_name='files')
+    file = models.FileField(upload_to='submissions/%Y/%m/%d/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"File for {self.submission} - {self.file.name}"
+
+class LessonAttachment(models.Model):
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='attachments')
+    file = models.FileField(upload_to='lesson_attachments/%Y/%m/%d/')
+    uploaded_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Attachment for {self.lesson} - {self.file.name}"
+
 class Deadline(models.Model):
     """Represents a deadline that may be attached to a lesson (optional)."""
     title = models.CharField(max_length=200)
