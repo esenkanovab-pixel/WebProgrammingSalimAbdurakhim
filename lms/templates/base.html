@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light site-navbar mb-4">
+<nav class="navbar navbar-expand-lg navbar-light site-navbar sticky-top">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="{% url 'course_list' %}">
             <img src="{% static 'images/logo.svg' %}" alt="MiniLMS logo" class="site-logo me-2">
@@ -21,8 +21,45 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
                 <li class="nav-item"><a class="nav-link" href="{% url 'course_list' %}">Курсы</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">О проекте</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Для студентов</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Для преподавателей</a></li>
+            </ul>
+
+            <!-- Authentication / User menu -->
+            <ul class="navbar-nav ms-3">
+                {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="me-2">{{ user.get_username }}</span>
+                            {% if user.is_staff %}
+                                <span class="badge bg-secondary small">Преподаватель</span>
+                            {% elif user.student_profile %}
+                                <span class="badge bg-secondary small">Студент</span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+                            <li><a class="dropdown-item" href="#">Профиль</a></li>
+                            <li><a class="dropdown-item" href="{% url 'student_dashboard' %}">Мои курсы</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}" class="px-3 py-1">
+                                    {% csrf_token %}
+                                    <button class="btn btn-link text-danger p-0" type="submit">Выйти</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item d-flex align-items-center">
+                        <a class="nav-link me-2" href="{% url 'login' %}">Войти</a>
+                        <a class="btn btn-primary custom" href="{% url 'register_user' %}">Регистрация</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
                 {% if user.is_authenticated %}
                     <li class="nav-item"><a class="nav-link" href="#">Привет, {{ user.get_username }}</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'calendar_view' %}">Календарь</a></li>
@@ -60,9 +97,30 @@
     {% block content %}{% endblock %}
 </main>
 
-<footer class="site-footer py-4 mt-5">
-    <div class="container text-center small text-muted">
-        &copy; {{ now|date:"Y" }} MiniLMS — Учебный проект
+<footer class="site-footer mt-5">
+    <div class="container">
+        <div class="row py-4">
+            <div class="col-md-4 mb-3">
+                <h5 class="mb-2">MiniLMS</h5>
+                <p class="small text-muted">Минималистичный учебный LMS-проект для демонстрации функциональности курсов, уроков и сдачи заданий.</p>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h6 class="mb-2">Навигация</h6>
+                <ul class="list-unstyled">
+                    <li><a href="{% url 'course_list' %}" class="footer-link">Курсы</a></li>
+                    <li><a href="{% url 'register_user' %}" class="footer-link">Регистрация</a></li>
+                    <li><a href="{% url 'login' %}" class="footer-link">Вход</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h6 class="mb-2">Контакты</h6>
+                <ul class="list-unstyled small">
+                    <li>Email: <a href="mailto:hello@minilms.example">hello@minilms.example</a></li>
+                    <li>GitHub: <a href="https://github.com/esenkanovab-pixel/WebProgrammingSalimAbdurakhim" target="_blank" rel="noopener">WebProgrammingSalimAbdurakhim</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="text-center small text-muted py-2">&copy; {{ now|date:"Y" }} MiniLMS — учебный проект</div>
     </div>
 </footer>
 

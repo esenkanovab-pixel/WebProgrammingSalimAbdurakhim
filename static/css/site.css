@@ -39,15 +39,47 @@ body {
   box-shadow: 0 2px 12px rgba(11, 15, 34, 0.04);
   border-bottom: 1px solid rgba(17,24,39,0.04);
   padding: .5rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1040;
+  backdrop-filter: blur(4px);
 }
 .site-navbar .container { display:flex; align-items:center; gap:1rem; }
 .site-navbar .navbar-brand { font-weight: 700; color: var(--primary-600); display:flex; align-items:center; }
 .site-logo { height: 36px; width: auto; display:inline-block; }
 .brand-text { font-weight:700; color:var(--primary-600); font-size:1.05rem; }
-.site-navbar .nav-link { color: rgba(15,23,42,0.75); margin-left:.5rem; margin-right:.5rem; padding:.35rem .5rem; }
-.site-navbar .nav-link:hover { color: rgba(15,23,42,0.95); background: rgba(15,23,42,0.03); border-radius:6px; }
+.site-navbar .nav-link { color: rgba(15,23,42,0.75); margin-left:.5rem; margin-right:.5rem; padding:.35rem .5rem; transition: background .15s ease, color .12s ease, transform .08s ease; }
+.site-navbar .nav-link:hover { color: rgba(15,23,42,0.95); background: rgba(15,23,42,0.03); border-radius:6px; transform: translateY(-1px); }
 .navbar-toggler { border: none; }
 .navbar-toggler:focus { outline: none; box-shadow: none; }
+
+/* Dropdown tweaks */
+.dropdown-menu { min-width: 200px; border-radius: 8px; box-shadow: 0 8px 24px rgba(20,20,43,0.08); }
+.dropdown-item { transition: background .12s ease; }
+.dropdown-item:hover { background: rgba(15,23,42,0.03); }
+
+/* Footer */
+.site-footer {
+  background: linear-gradient(180deg, rgba(247,250,252,0.6), rgba(255,255,255,0.6));
+  border-top: 1px solid rgba(17,24,39,0.06);
+  color: var(--muted-500);
+  flex-shrink: 0;
+  padding-top: .75rem;
+  padding-bottom: .75rem;
+}
+.site-footer .container { display:flex; align-items:center; justify-content:center; gap:.5rem; }
+.site-footer .small { opacity: 0.95; }
+
+.site-footer h5, .site-footer h6 { color: rgba(11,15,34,0.88); }
+.site-footer .footer-link { color: rgba(11,15,34,0.8); text-decoration: none; }
+.site-footer .footer-link:hover { text-decoration: underline; color: var(--primary-600); }
+
+@media (max-width: 767px) {
+  .site-navbar .nav-link { padding:.45rem .65rem; }
+  .brand-text { font-size: 1rem; }
+  .site-footer .container { flex-direction: column; align-items: flex-start; }
+  .site-footer .text-center { text-align: left !important; }
+}
 
 /* Cards */
 .card {
