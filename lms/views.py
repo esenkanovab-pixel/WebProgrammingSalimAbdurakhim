@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Course, Lesson, Student, HomeworkSubmission
+from .models import Course, Lesson, Student, HomeworkSubmission, LessonAttachment, SubmissionFile
 from .forms import CourseCreateForm, LessonCreateForm, HomeworkSubmissionForm, GradeForm, UserRegistrationForm
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -7,6 +7,32 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth import login
 from django.utils import timezone
+from django.contrib import messages
+
+# File upload constraints
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10 MB
+ALLOWED_CONTENT_TYPES = {
+    'image/jpeg', 'image/png', 'image/gif',
+    'application/pdf', 'text/plain',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+}
+
+
+def validate_upload_file(f):
+    """Return None if OK, else return error string."""
+    if f.size > MAX_UPLOAD_SIZE:
+        return f"Файл {f.name}: превышен максимальный размер 10MB"
+    ctype = getattr(f, 'content_type', None)
+    if ctype and ctype not in ALLOWED_CONTENT_TYPES:
+        return f"Файл {f.name}: недопустимый тип файла ({ctype})"
+    # If content_type missing, do a simple extension check
+    if not ctype:
+        import mimetypes
+        guess, _ = mimetypes.guess_type(f.name)
+        if guess and guess not in ALLOWED_CONTENT_TYPES:
+            return f"Файл {f.name}: подозрительный тип файла ({guess})"
+    return None
 
 def is_teacher(user):
     return user.is_staff
@@ -28,12 +54,24 @@ def lesson_detail(request, lesson_id):
         if student:
             submission = HomeworkSubmission.objects.filter(lesson=lesson, student=student).first()
             if request.method == 'POST':
-                form = HomeworkSubmissionForm(request.POST, instance=submission)
+                form = HomeworkSubmissionForm(request.POST, request.FILES, instance=submission)
                 if form.is_valid():
                     obj = form.save(commit=False)
                     obj.student = student
                     obj.lesson = lesson
                     obj.save()
+                    # handle attached files
+                    files = request.FILES.getlist('attachments')
+                    bad = []
+                    for f in files:
+                        err = validate_upload_file(f)
+                        if err:
+                            bad.append(err)
+                            continue
+                        SubmissionFile.objects.create(submission=obj, file=f)
+                    if bad:
+                        for e in bad:
+                            messages.error(request, e)
                     return redirect('lesson_detail', lesson_id=lesson.id)
             else:
                 form = HomeworkSubmissionForm(instance=submission)
@@ -83,16 +121,47 @@ def lesson_create(request, course_id):
         raise PermissionDenied
     course = get_object_or_404(Course, id=course_id)
     if request.method == 'POST':
-        form = LessonCreateForm(request.POST)
+        form = LessonCreateForm(request.POST, request.FILES)
         if form.is_valid():
             lesson = form.save(commit=False)
             lesson.course = course
             lesson.save()
+            # handle uploaded attachments
+            files = request.FILES.getlist('attachments')
+            for f in files:
+                LessonAttachment.objects.create(lesson=lesson, file=f, uploaded_by=request.user)
             return redirect('course_detail', course_id=course.id)
     else:
         form = LessonCreateForm()
     return render(request, 'lesson_form.html', {'form': form, 'course': course})
 
+@login_required
+def lesson_add_attachment(request, lesson_id):
+    if not is_teacher(request.user):
+        raise PermissionDenied
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    if request.method == 'POST':
+        files = request.FILES.getlist('attachments')
+        bad = []
+        for f in files:
+            err = validate_upload_file(f)
+            if err:
+                bad.append(err)
+                continue
+            LessonAttachment.objects.create(lesson=lesson, file=f, uploaded_by=request.user)
+        if bad:
+            for e in bad:
+                messages.error(request, e)
+@login_required
+def lesson_attachment_delete(request, attachment_id):
+    att = get_object_or_404(LessonAttachment, id=attachment_id)
+    if not is_teacher(request.user):
+        raise PermissionDenied
+    lesson_id = att.lesson.id
+    if request.method == 'POST':
+        att.delete()
+        return redirect('lesson_detail', lesson_id=lesson_id)
+    return render(request, 'generic_confirm.html', {'object': att, 'title': 'Удалить вложение'})
 @login_required
 def course_enroll(request, course_id):
     course = get_object_or_404(Course, id=course_id)
@@ -157,14 +226,36 @@ def submission_edit(request, submission_id):
     if getattr(request.user, 'student_profile', None) != submission.student:
         return redirect('student_dashboard')
     if request.method == 'POST':
-        form = HomeworkSubmissionForm(request.POST, instance=submission)
+        form = HomeworkSubmissionForm(request.POST, request.FILES, instance=submission)
         if form.is_valid():
-            form.save()
+            obj = form.save()
+            files = request.FILES.getlist('attachments')
+            bad = []
+            for f in files:
+                err = validate_upload_file(f)
+                if err:
+                    bad.append(err)
+                    continue
+                SubmissionFile.objects.create(submission=obj, file=f)
+            if bad:
+                for e in bad:
+                    messages.error(request, e)
             return redirect('lesson_detail', lesson_id=submission.lesson.id)
     else:
         form = HomeworkSubmissionForm(instance=submission)
     return render(request, 'submission_form.html', {'form': form, 'submission': submission})
 
+@login_required
+def submission_file_delete(request, file_id):
+    sf = get_object_or_404(SubmissionFile, id=file_id)
+    # only owner student or teacher can delete
+    if getattr(request.user, 'student_profile', None) != sf.submission.student and not is_teacher(request.user):
+        return redirect('student_dashboard')
+    lesson_id = sf.submission.lesson.id
+    if request.method == 'POST':
+        sf.delete()
+        return redirect('lesson_detail', lesson_id=lesson_id)
+    return render(request, 'generic_confirm.html', {'object': sf, 'title': 'Удалить файл отправки'})
 
 @login_required
 def submissions_list(request):
