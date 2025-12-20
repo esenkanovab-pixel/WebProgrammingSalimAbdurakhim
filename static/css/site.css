@@ -38,10 +38,16 @@ body {
   background: var(--surface);
   box-shadow: 0 2px 12px rgba(11, 15, 34, 0.04);
   border-bottom: 1px solid rgba(17,24,39,0.04);
+  padding: .5rem 0;
 }
-.site-navbar .navbar-brand { font-weight: 700; color: var(--primary-600); }
-.site-navbar .nav-link { color: rgba(15,23,42,0.75); }
-.site-navbar .nav-link:hover { color: rgba(15,23,42,0.95); }
+.site-navbar .container { display:flex; align-items:center; gap:1rem; }
+.site-navbar .navbar-brand { font-weight: 700; color: var(--primary-600); display:flex; align-items:center; }
+.site-logo { height: 36px; width: auto; display:inline-block; }
+.brand-text { font-weight:700; color:var(--primary-600); font-size:1.05rem; }
+.site-navbar .nav-link { color: rgba(15,23,42,0.75); margin-left:.5rem; margin-right:.5rem; padding:.35rem .5rem; }
+.site-navbar .nav-link:hover { color: rgba(15,23,42,0.95); background: rgba(15,23,42,0.03); border-radius:6px; }
+.navbar-toggler { border: none; }
+.navbar-toggler:focus { outline: none; box-shadow: none; }
 
 /* Cards */
 .card {

@@ -10,10 +10,11 @@
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
 </head>
 <body>
-<nav class="site-navbar navbar-expand-lg mb-4">
+<nav class="navbar navbar-expand-lg navbar-light site-navbar mb-4">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="{% url 'course_list' %}">
-            <span class="fs-5">MiniLMS</span>
+            <img src="{% static 'images/logo.svg' %}" alt="MiniLMS logo" class="site-logo me-2">
+            <span class="brand-text">MiniLMS</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="#navbarNav" aria-expanded="false" aria-label="Toggle navigation">
