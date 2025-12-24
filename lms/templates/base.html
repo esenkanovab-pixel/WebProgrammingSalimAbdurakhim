@@ -137,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const root = document.documentElement;
   const btn = document.getElementById('themeToggle');
   const icon = document.getElementById('themeIcon');
+  const nav = document.querySelector('.site-navbar');
 
   function updateIcon(){
     if(!icon) return;
@@ -146,7 +147,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setTheme(theme){
-    if(theme === 'dark') root.classList.add('theme-dark'); else root.classList.remove('theme-dark');
+    if(theme === 'dark'){
+      root.classList.add('theme-dark');
+      if(nav){ nav.classList.remove('navbar-light'); nav.classList.add('navbar-dark'); }
+    } else {
+      root.classList.remove('theme-dark');
+      if(nav){ nav.classList.remove('navbar-dark'); nav.classList.add('navbar-light'); }
+    }
     try{ localStorage.setItem(key, theme); }catch(e){}
     updateIcon();
   }
