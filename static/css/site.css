@@ -170,6 +170,20 @@ body {
 
 .theme-dark { --bg: #0b1220; --surface: #0f1724; --primary-500: #3b82f6; color: #e6eef9; }
 .theme-dark body { background-color: var(--bg); color: #e6eef9; }
+
+/* Dark theme: footer adjustments */
+.theme-dark .site-footer {
+  background: linear-gradient(180deg, rgba(8,12,18,0.45), rgba(12,16,24,0.6));
+  border-top-color: rgba(255,255,255,0.06);
+  color: #b6c7df;
+}
+.theme-dark .site-footer h5, .theme-dark .site-footer h6 { color: #e6eef9; }
+.theme-dark .site-footer .footer-link { color: #dbeafe; }
+.theme-dark .site-footer .footer-link:hover { color: var(--primary-500); text-decoration: underline; }
+.theme-dark .site-footer .small, .theme-dark .site-footer .text-muted { color: #9fb2d6; opacity: 1; }
+.theme-dark .social-link { background: rgba(255,255,255,0.02); box-shadow: none; color: #e6eef9; }
+.theme-dark .social-link:hover { box-shadow: 0 8px 20px rgba(30,40,60,0.5); transform: translateY(-4px) scale(1.02); }
+
 .theme-toggle { cursor: pointer; border-radius: 8px; padding: .35rem; display:inline-flex; align-items:center; justify-content:center; }
 .theme-toggle svg { width:18px; height:18px; }
 
