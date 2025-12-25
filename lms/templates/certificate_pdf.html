@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    /* Simple, beginner-friendly stylesheet for the certificate */
+    body { font-family: 'DejaVu Sans', Arial, sans-serif; margin:0; padding:0; }
+    .page { width: 1123px; height: 794px; position: relative; }
+    .bg { position:absolute; inset:0; background-size:cover; background-repeat:no-repeat; }
+    .content { position: absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:60px; }
+    .certificate-title { font-size:36px; font-weight:700; margin-bottom:20px; }
+    .name { font-size:28px; margin-bottom:10px; }
+    .details { font-size:16px; margin-top:12px; }
+    .footer { position:absolute; bottom:30px; width:100%; text-align:center; font-size:12px; color:#555; }
+    .small-id { font-size:12px; margin-top:10px; color:#444; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    {% if bg_path %}
+      <div class="bg" style="background-image: url('{{ bg_path }}');"></div>
+    {% endif %}
+
+    <div class="content">
+      <div class="certificate-title">Сертификат об окончании курса</div>
+      <div class="name"><strong>{{ student.user.get_full_name|default:student.user.username }}</strong></div>
+      <div class="details">успешно завершил(а) курс<br/><strong>{{ course.title }}</strong></div>
+      <div class="details">Преподаватель: {{ teacher.get_full_name|default:teacher.username }}</div>
+      <div class="details">Дата выдачи: {{ issued_at|date:"d.m.Y" }}</div>
+      <div class="small-id">ID сертификата: {{ certificate.certificate_id }}</div>
+    </div>
+
+    <div class="footer">MiniLMS — сертификат действителен при совпадении ID</div>
+  </div>
+</body>
+</html>

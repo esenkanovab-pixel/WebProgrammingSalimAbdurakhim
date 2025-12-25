@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Course, Lesson, Student, HomeworkSubmission
+from .models import Course, Lesson, Student, HomeworkSubmission, Certificate
 from .forms import CourseCreateForm, LessonCreateForm, HomeworkSubmissionForm, GradeForm, UserRegistrationForm
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -7,6 +7,57 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth import login
 from django.utils import timezone
+from django.template.loader import render_to_string
+from django.http import HttpResponse, Http404
+from django.conf import settings
+import os
+
+
+@login_required
+def profile_view(request):
+    """Show current user's profile with avatar and role."""
+    return render(request, 'profile.html')
+
+
+@login_required
+def certificate_pdf(request, certificate_id):
+    """Return the generated PDF certificate file (only owner can download).
+
+    If the PDF is missing, try to generate it (calls model's generator).
+    The saved PDF is served as a `FileResponse` for efficient streaming.
+    """
+    cert = get_object_or_404(Certificate, id=certificate_id)
+    if cert.student.user != request.user:
+        raise PermissionDenied
+
+    # If PDF not attached or missing on disk, try to generate
+    needs_generate = False
+    if not cert.pdf_file or not cert.pdf_file.name:
+        needs_generate = True
+    else:
+        try:
+            from django.conf import settings
+            if not os.path.exists(os.path.join(settings.MEDIA_ROOT, cert.pdf_file.name)):
+                needs_generate = True
+        except Exception:
+            needs_generate = True
+
+    if needs_generate:
+        cert.generate_certificate_files()
+
+    if cert.pdf_file and cert.pdf_file.name:
+        try:
+            from django.http import FileResponse
+            f = cert.pdf_file.open('rb')
+            return FileResponse(f, as_attachment=True, filename=f"certificate-{cert.id}.pdf")
+        except Exception:
+            raise Http404('Certificate PDF not available')
+
+    raise Http404('Certificate PDF not available')
+
+
+def about_view(request):
+    return render(request, 'about.html')
 
 def is_teacher(user):
     return user.is_staff
@@ -230,15 +281,6 @@ def register_user(request):
         form = UserRegistrationForm()
     return render(request, 'register.html', {'form': form})
 
-from django.contrib.auth.decorators import login_required
-
-@login_required
-def profile_view(request):
-    """Show current user's profile with avatar and role."""
-    return render(request, 'profile.html')
-
-def about_view(request):
-    return render(request, 'about.html')
 
 # ---------------- Teacher / Student specific views -----------------
 @login_required

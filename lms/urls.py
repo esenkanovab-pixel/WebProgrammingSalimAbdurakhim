@@ -28,6 +28,8 @@ urlpatterns = [
     path('api/deadlines/<int:deadline_id>/', views.deadline_detail_api, name='deadline_detail_api'),
     path('about/', views.about_view, name='about'),
     path('profile/', views.profile_view, name='profile'),
+    # Certificate download (only for the owner student) — use numeric PK for simplicity
+    path('certificate/<int:certificate_id>/pdf/', views.certificate_pdf, name='certificate_pdf'),
     # Teacher and student specific
     path('teacher/dashboard/', views.teacher_dashboard, name='teacher_dashboard'),
     path('teacher/course/<int:course_id>/', views.teacher_course_detail, name='teacher_course_detail'),

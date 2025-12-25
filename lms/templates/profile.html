@@ -41,6 +41,29 @@
         {% endif %}
       </div>
     </div>
+
+    {# Certificates card for students #}
+    {% if request.user.student_profile %}
+    <div class="card mt-3">
+      <div class="card-body">
+        <h5>Сертификаты</h5>
+        {% if request.user.student_profile.certificates.exists %}
+          <ul>
+            {% for cert in request.user.student_profile.certificates.all %}
+              <li>
+                {{ cert.course.title }} — выдано {{ cert.issued_at|date:"d.m.Y" }}
+                &nbsp;•&nbsp;
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'certificate_pdf' cert.id %}">Скачать сертификат (PDF)</a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="small text-muted">Нет сертификатов.</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
   </div>
 </div>
 {% endblock %}
